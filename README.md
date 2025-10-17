@@ -1,1 +1,1 @@
-# Gpa-and-cgpa
+# Gpa & cgpa calculator 
