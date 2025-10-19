@@ -1,27 +1,13 @@
 import streamlit as st
 import pandas as pd
 
-# --- Grade Point Mapping ---
-# This dictionary is still used to look up the typed grade.
-GRADE_POINTS = {
-    'A': 4.0,
-    'A-': 3.7,
-    'B+': 3.3,
-    'B': 3.0,
-    'B-': 2.7,
-    'C+': 2.3,
-    'C': 2.0,
-    'C-': 1.7,
-    'D+': 1.3,
-    'D': 1.0,
-    'F': 0.0
-}
-# We no longer need GRADE_OPTIONS
+# --- Grade Point Mapping (REMOVED) ---
+# We no longer need the GRADE_POINTS dictionary
 
 # --- GPA Calculator Function (Single Semester) ---
 def gpa_calculator():
     st.title("GPA Calculator (Single Semester)")
-    st.write("Enter your courses, credits, and grades for this semester.")
+    st.write("Enter your courses, credits, and the numeric grade points for this semester.")
 
     num_courses = st.number_input("How many courses did you take?", min_value=1, value=4)
 
@@ -42,44 +28,43 @@ def gpa_calculator():
             )
         
         with col2:
-            # CHANGED: Replaced st.selectbox with st.text_input
-            grade_input = st.text_input(
-                f"Course {i+1} Grade",
-                placeholder="e.g., A, B+, C-",  # Guides the user
-                key=f"grade_{i}"
+            # CHANGED: Ask for numeric grade point directly
+            grade_point = st.number_input(
+                f"Course {i+1} Grade Point",
+                min_value=0.0,
+                max_value=4.0, # You can change this if your scale is different
+                step=0.1,      # Allows 3.0, 3.1, 3.3, 3.6, etc.
+                value=3.0,     # A default value
+                key=f"grade_point_{i}"
             )
         
         # Add the raw inputs to our list
-        course_inputs.append({'credits': credits, 'grade_input': grade_input})
+        course_inputs.append({'credits': credits, 'grade_point': grade_point})
 
     # Calculate GPA
     if st.button("Calculate GPA"):
         total_points = 0.0
         total_credits = 0.0
         courses_summary = []
-        all_grades_valid = True # Flag to check inputs
 
         # Process the inputs only after the button is clicked
         for i, course in enumerate(course_inputs):
             credits = course['credits']
-            grade_input = course['grade_input']
+            grade_point = course['grade_point'] # Get the numeric grade point
             
-            # Standardize the input (uppercase, remove whitespace)
-            grade = grade_input.upper().strip() 
+            # Direct calculation: (Credits * Grade Point)
+            points = grade_point * credits
+            total_points += points
+            total_credits += credits
+            
+            # Add to summary list
+            courses_summary.append({
+                'Course': f"Course {i+1}", 
+                'Credits': credits, 
+                'Grade Point': grade_point
+            })
 
-            # Check if the typed grade is valid
-            if grade in GRADE_POINTS:
-                points = GRADE_POINTS[grade] * credits
-                total_points += points
-                total_credits += credits
-                courses_summary.append({'Course': f"Course {i+1}", 'Credits': credits, 'Grade': grade})
-            else:
-                # If any grade is invalid, show an error and stop
-                st.error(f"Invalid grade: '{grade_input}'. Please use a valid letter grade (e.g., A, A-, B+).", icon="❌")
-                all_grades_valid = False
-                break # Stop processing
-
-        if all_grades_valid and total_credits > 0:
+        if total_credits > 0:
             gpa = total_points / total_credits
             
             st.success(f"**Your GPA is: {gpa:.2f}**")
@@ -87,12 +72,12 @@ def gpa_calculator():
             st.write(f"Total Credit Hours: {total_credits}")
 
             st.subheader("Semester Summary")
-            df = pd.DataFrame(courses_summary)
+            # Create DataFrame with the new column name
+            df = pd.DataFrame(courses_summary, columns=['Course', 'Credits', 'Grade Point'])
             st.dataframe(df)
             
-        elif all_grades_valid and total_credits == 0:
+        else:
             st.error("Please enter valid credit hours.")
-        # If all_grades_valid is False, the error message is already shown
 
 # --- CGPA Calculator Function (Multiple Semesters) ---
 def cgpa_calculator():
