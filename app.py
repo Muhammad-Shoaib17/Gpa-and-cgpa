@@ -138,14 +138,12 @@ def cgpa_calculator():
         else:
             st.error("Please enter valid credit hours.")
 
-# --- Main App Navigation ---
-st.sidebar.title("Navigation")
-choice = st.sidebar.selectbox(
-    "Choose a calculator",
-    ["GPA Calculator (Single Semester)", "CGPA Calculator (Multiple Semesters)"]
-)
+# --- Main App ---
+# Run the first calculator
+gpa_calculator()
 
-if choice == "GPA Calculator (Single Semester)":
-    gpa_calculator()
-else:
-    cgpa_calculator()
+# Add a visual separator
+st.divider()
+
+# Run the second calculator
+cgpa_calculator()
